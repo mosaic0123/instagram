@@ -13,7 +13,7 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
 
     @IBOutlet weak var tableView: UITableView!
     
-    var postItems: [NSDictionary] = []
+    var postItems: [Post] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,11 +35,20 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
                 if let responseDictionary = try! JSONSerialization.jsonObject(with: data, options:[]) as? NSDictionary {
                     if let response = responseDictionary["response"] as? NSDictionary {
                         if let posts = response["posts"] as? [NSDictionary] {
-                            print(posts)
-//                        DispatchQueue.main.async {
-//                                self.tableView.reloadData()
-//                                print(self.posts)
-//                        }
+                            for object in posts {
+                                if let photos = object["photos"] as? [NSDictionary] {
+                                    if let original = photos[0]["original_size"] as? NSDictionary{
+                                        let imageURL = original["url"] as! String
+                                        self.postItems.append(Post(imageURL: imageURL))
+                                        DispatchQueue.main.async {
+                                            self.tableView.reloadData()
+                                            for post in self.postItems {
+                                                print(post.imageURL)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -53,9 +62,8 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         let cellIdentifier = "Cell"
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier,
                                                  for: indexPath) as! PhotosTableViewCell
-//        print(posts[indexPath.row])
-//        var currentURL = (posts[indexPath.row])["photos"][0]["original_size"]["url"]
-        cell.postImageView.setImageWith(URL(string: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Flag_of_Taunton%2C_Massachusetts.svg/1050px-Flag_of_Taunton%2C_Massachusetts.svg.png")!)
+        var currentURL = self.postItems[indexPath.row].imageURL!
+        cell.postImageView.setImageWith(URL(string: currentURL)!)
         
         return cell
     }
